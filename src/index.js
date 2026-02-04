@@ -3,6 +3,7 @@ import express from "express";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import connectDB from "./db/db.js";
 import { register } from "./controllers/register.controller.js";
+import { signin } from "./controllers/signin.controller.js";
 
 
 dotenv.config();
@@ -49,6 +50,7 @@ app.get('/', (req, res) => {
     res.send("Saathi Backend is running! Send a POST request to /review to get started.");
 });
 app.post('/register',register);
+app.post('/signin',signin);
 app.post('/review', async (req, res) => {
     try {
         const { question, code } = req.body;
