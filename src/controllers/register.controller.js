@@ -8,24 +8,27 @@ export const register = async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Please provide all the fields"
+        message: "Please provide all fields",
       });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
-        message: "Password must be at least 6 characters"
+        message: "Password must be at least 6 characters",
       });
     }
 
     const normalizedEmail = email.toLowerCase();
 
-    const exists = await User.findOne({ email: normalizedEmail });
+    const exists = await User.findOne({
+      $or: [{ email: normalizedEmail }, { username }],
+    });
+
     if (exists) {
       return res.status(409).json({
         success: false,
-        message: "User already exists"
+        message: "User already exists",
       });
     }
 
@@ -34,19 +37,19 @@ export const register = async (req, res) => {
     const user = await User.create({
       username,
       email: normalizedEmail,
-      password: hashedPass
+      password: hashedPass,
     });
 
     return res.status(201).json({
       success: true,
       message: "User registered",
-      userId: user._id
+      userId: user._id,
     });
-
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
       success: false,
-      message: "Something went wrong"
+      message: "Internal server error",
     });
   }
 };
