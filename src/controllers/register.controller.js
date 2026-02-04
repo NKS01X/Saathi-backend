@@ -12,11 +12,28 @@ export const register = async (req, res) => {
       });
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters"
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    const exists = await User.findOne({ email: normalizedEmail });
+    if (exists) {
+      return res.status(409).json({
+        success: false,
+        message: "User already exists"
+      });
+    }
+
     const hashedPass = await encrypt(password);
 
     const user = await User.create({
       username,
-      email,
+      email: normalizedEmail,
       password: hashedPass
     });
 
@@ -25,10 +42,11 @@ export const register = async (req, res) => {
       message: "User registered",
       userId: user._id
     });
+
   } catch (err) {
-    return res.status(400).json({
+    return res.status(500).json({
       success: false,
-      error: err.message
+      message: "Something went wrong"
     });
   }
 };
