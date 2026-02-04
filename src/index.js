@@ -1,7 +1,9 @@
 import dotenv from "dotenv";
 import express from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai"; // Fixed line
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import connectDB from "./db/db.js";
+import { register } from "./controllers/register.controller.js";
+
 
 dotenv.config();
 
@@ -46,6 +48,7 @@ const model = genAI.getGenerativeModel({
 app.get('/', (req, res) => {
     res.send("Saathi Backend is running! Send a POST request to /review to get started.");
 });
+app.post('/register',register);
 app.post('/review', async (req, res) => {
     try {
         const { question, code } = req.body;
