@@ -4,11 +4,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import connectDB from "./db/db.js";
 import { register } from "./controllers/register.controller.js";
 import { signin } from "./controllers/signin.controller.js";
+import { isLoggedIn } from "./middleware/auth.js";
 
 
 dotenv.config();
-
-
 connectDB();
 
 const app = express();
@@ -47,11 +46,14 @@ const model = genAI.getGenerativeModel({
     }
 });
 app.get('/', (req, res) => {
-    res.send("Saathi Backend is running! Send a POST request to /review to get started.");
+    res.send("WELCOME TO SAATHI,CORRECT YOUR SELF WHILE LEARNING");
 });
 app.post('/register',register);
 app.post('/signin',signin);
-app.post('/review', async (req, res) => {
+
+//gotta check wheather the user is logged in or not 
+//if not then redirect it to the homepage 
+app.post('/review', isLoggedIn,async (req, res) => {
     try {
         const { question, code } = req.body;
         
@@ -59,12 +61,9 @@ app.post('/review', async (req, res) => {
             return res.status(400).json({ error: "Missing question or code" });
         }
 
-        // Combine inputs so the AI has context of the code AND the user's specific question
         const fullPrompt = `User Question: ${question}\nUser Code: ${code}`;
 
         const result = await model.generateContent(fullPrompt);
-        
-        // FIX 2: Parse the string into a real JSON object before sending
         const reviewData = JSON.parse(result.response.text());
 
         // This is where you will eventually call your Database:

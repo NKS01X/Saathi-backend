@@ -1,5 +1,9 @@
+import jwt from "jsonwebtoken";
 import { User } from "../models/register.scheme.js";
 import { verifyPass } from "../utils/utils.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const signin = async (req, res) => {
   try {
@@ -20,6 +24,22 @@ export const signin = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
+
+    const payload = {
+      id: user._id,
+      email: user.email
+    };
+
+    const secret = process.env.SECRET || "youaintgettingitbuddy";
+
+    const token = jwt.sign(payload, secret, { expiresIn: "7d" });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
 
     return res.status(200).json({
       success: true,
