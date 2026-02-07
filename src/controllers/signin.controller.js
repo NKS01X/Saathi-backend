@@ -26,6 +26,7 @@ export const signin = async (req, res) => {
     }
 
     const payload = {
+      username: user.username, 
       id: user._id,
       email: user.email
     };

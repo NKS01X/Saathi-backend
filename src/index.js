@@ -8,6 +8,8 @@ import { register } from "./controllers/register.controller.js";
 import { signin } from "./controllers/signin.controller.js";
 import { isLoggedIn } from "./middleware/auth.js";
 import { Mistake } from "./models/mistake.schema.js";
+import { profile } from "./controllers/profile.controller.js";
+import { User } from "./models/register.schema.js";
 
 dotenv.config();
 connectDB();
@@ -71,13 +73,48 @@ async function processQueue() {
 
         const reviewData = JSON.parse(aiResponse);
 
-        // Save to DB
         if (req.user && req.user._id) {
             await Mistake.create({
                 userId: req.user._id,
                 mistakeCategory: reviewData.category,
                 conceptTag: reviewData.conceptTag,
             });
+
+            const categoryKey = reviewData.category.toLowerCase();
+            const validCategories = ['logic', 'syntax', 'security', 'performance', 'readability'];
+
+            const updateQuery = {
+                $inc: { "stats.totalReviews": 1 }
+            };
+
+            if (validCategories.includes(categoryKey)) {
+                updateQuery.$inc[`stats.categories.${categoryKey}`] = 1;
+            }
+
+            const updatedUser = await User.findByIdAndUpdate(
+                req.user._id,
+                updateQuery,
+                { new: true }
+            );
+
+            if (updatedUser) {
+                let maxCount = -1;
+                let topTag = updatedUser.stats.topStruggleTag;
+
+                for (const cat of validCategories) {
+                    const count = updatedUser.stats.categories[cat];
+                    if (count > maxCount) {
+                        maxCount = count;
+                        topTag = cat;
+                    }
+                }
+
+                if (topTag !== updatedUser.stats.topStruggleTag) {
+                    await User.findByIdAndUpdate(req.user._id, {
+                        "stats.topStruggleTag": topTag
+                    });
+                }
+            }
         }
 
         res.json(reviewData);
@@ -97,7 +134,8 @@ app.get('/', (req, res) => {
 });
 app.post('/register', register);
 app.post('/signin', signin);
-
+app.get("/profile", isLoggedIn, profile);
+// app.get('/profile/:userName')
 //gotta check wheather the user is logged in or not 
 //if not then redirect it to the homepage 
 //gonna let use the guest for one time and then we will force the user to login 
