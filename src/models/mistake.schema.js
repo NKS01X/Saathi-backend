@@ -25,7 +25,7 @@ import mongoose from "mongoose";
 const mistakeSchema = new mongoose.Schema(
   {
     userId: {
-      type: Number,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
       index: true
     },
