@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { User } from "../models/register.scheme.js";
+import { User } from "../models/register.schema.js";
 import { verifyPass } from "../utils/utils.js";
 import dotenv from "dotenv";
 

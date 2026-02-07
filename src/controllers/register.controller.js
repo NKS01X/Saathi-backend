@@ -1,4 +1,4 @@
-import { User } from "../models/register.scheme.js";
+import { User } from "../models/register.schema.js";
 import { encrypt } from "../utils/utils.js";
 
 export const register = async (req, res) => {
